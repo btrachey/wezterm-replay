@@ -1,5 +1,8 @@
 local wezterm = require('wezterm')
+local os = require('os')
+local io = require('io')
 
+local cache_file = wezterm.home_dir .. '/.replay.wez/cache.json'
 local default_extractors = {
   -- commands inside `backticks`
   {
@@ -100,41 +103,94 @@ end
 
 local M = {}
 
+function M.recall()
+  return wezterm.action_callback(function(window, pane, _, _)
+    local extracted_commands
+    local f = io.open(cache_file, 'r')
+    if f then
+      local cached = f:read()
+      extracted_commands = wezterm.json_parse(cached)
+    end
+    if #extracted_commands == 0 then
+      wezterm.log_info('no commands found')
+    elseif #extracted_commands == 1 then
+      -- only one result? immediately send it to the prompt
+      send_command_string(extracted_commands[1].label, pane)
+    else
+      -- use the wezterm built-in selection mechanism
+      window:perform_action(
+        wezterm.action.InputSelector {
+          action = wezterm.action_callback(
+            function(_, inner_pane, _, inner_label)
+              if not inner_label then
+                wezterm.log_info('cancelled')
+              else
+                send_command_string(inner_label, inner_pane)
+              end
+            end
+          ),
+          title = 'Replay Command',
+          choices = extracted_commands,
+          alphabet = '123456789',
+          description = 'Send command to pane; press / to search.',
+        },
+        pane
+      )
+    end
+  end)
+end
+
+function M.replay()
+  return wezterm.action_callback(function(window, pane, _, _)
+    local extracted_commands = command_choices(pane, default_extractors)
+    if #extracted_commands == 0 then
+      wezterm.log_info('no commands found')
+    elseif #extracted_commands == 1 then
+      -- only one result? immediately send it to the prompt
+      send_command_string(extracted_commands[1].label, pane)
+    else
+      -- cache the list so it can be re-used later
+      local f = io.open(cache_file, 'w+')
+      if f then
+        f:write(wezterm.json_encode(extracted_commands))
+        f:flush()
+        f:close()
+      end
+
+      -- use the wezterm built-in selection mechanism
+      window:perform_action(
+        wezterm.action.InputSelector {
+          action = wezterm.action_callback(
+            function(_, inner_pane, _, inner_label)
+              if not inner_label then
+                wezterm.log_info('cancelled')
+              else
+                send_command_string(inner_label, inner_pane)
+              end
+            end
+          ),
+          title = 'Replay Command',
+          choices = extracted_commands,
+          alphabet = '123456789',
+          description = 'Send command to pane; press / to search.',
+        },
+        pane
+      )
+    end
+  end)
+end
+
 function M.apply_to_config(config, _)
   add_keys(config, {
-    -- get actionable commands out of the last output
     {
       key = 'l',
       mods = 'LEADER',
-      action = wezterm.action_callback(function(window, pane, _, _)
-        local extracted_commands = command_choices(pane, default_extractors)
-        if #extracted_commands == 0 then
-          wezterm.log_info('no commands found')
-        elseif #extracted_commands == 1 then
-          -- only one result? immediately send it to the prompt
-          send_command_string(extracted_commands[1].label, pane)
-        else
-          -- use the wezterm built-in selection mechanism
-          window:perform_action(
-            wezterm.action.InputSelector {
-              action = wezterm.action_callback(
-                function(_, inner_pane, _, inner_label)
-                  if not inner_label then
-                    wezterm.log_info('cancelled')
-                  else
-                    send_command_string(inner_label, inner_pane)
-                  end
-                end
-              ),
-              title = 'Replay Command',
-              choices = extracted_commands,
-              alphabet = '123456789',
-              description = 'Send command to pane; press / to search.',
-            },
-            pane
-          )
-        end
-      end),
+      action = M.replay(),
+    },
+    {
+      key = 'u',
+      mods = 'LEADER',
+      action = M.recall(),
     },
   })
 end
