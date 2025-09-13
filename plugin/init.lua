@@ -2,7 +2,9 @@ local wezterm = require('wezterm')
 local os = require('os')
 local io = require('io')
 
-local cache_file = wezterm.home_dir .. '/.replay.wez/cache.json'
+local cache_dir = wezterm.home_dir .. '/.replay.wez'
+local cache_file = 'cache.json'
+local cache_path = cache_dir .. '/' .. cache_file
 local default_extractors = {
   -- commands inside `backticks`
   {
@@ -106,7 +108,7 @@ local M = {}
 function M.recall()
   return wezterm.action_callback(function(window, pane, _, _)
     local extracted_commands
-    local f = io.open(cache_file, 'r')
+    local f = io.open(cache_path, 'r')
     if f then
       local cached = f:read()
       extracted_commands = wezterm.json_parse(cached)
@@ -150,11 +152,19 @@ function M.replay()
       send_command_string(extracted_commands[1].label, pane)
     else
       -- cache the list so it can be re-used later
-      local f = io.open(cache_file, 'w+')
+      local f = io.open(cache_path, 'w+')
       if f then
         f:write(wezterm.json_encode(extracted_commands))
         f:flush()
         f:close()
+      else
+        os.execute('mkdir -p ' .. cache_dir)
+        local f2 = io.open(cache_path, 'w+')
+        if f2 then
+          f2:write(wezterm.json_encode(extracted_commands))
+          f2:flush()
+          f2:close()
+        end
       end
 
       -- use the wezterm built-in selection mechanism
