@@ -5,12 +5,15 @@ local io = require('io')
 local cache_dir = wezterm.home_dir .. '/.replay.wez'
 local cache_file = 'cache.json'
 local cache_path = cache_dir .. '/' .. cache_file
+
+local all_extractors
 local default_extractors = {
   -- commands inside `backticks`
   {
+    label = 'backticks',
     prefix = nil,
     postfix = nil,
-    func = function(s)
+    extractor = function(s)
       local matches = {}
       for match in string.gmatch(s, '`(.*)`') do
         table.insert(matches, match)
@@ -20,9 +23,10 @@ local default_extractors = {
   },
   -- regexes for opening URLs
   {
+    label = 'URIs',
     prefix = 'open',
     postfix = nil,
-    func = function(s)
+    extractor = function(s)
       local url_regexes = {
         '%((%w+://%S+)%)',
         '%[(%w+://%S+)%]',
@@ -85,7 +89,7 @@ local function command_choices(pane, extractors)
   local last_output = pane:get_text_from_semantic_zone(last_output_zone)
   wezterm.log_info('last Output: ' .. last_output)
   for _, extractor in ipairs(extractors) do
-    local extracted = extractor.func(last_output)
+    local extracted = extractor.extractor(last_output)
     for _, ex in ipairs(extracted) do
       local label_prefix = ''
       if extractor.prefix then
@@ -144,7 +148,7 @@ end
 
 function M.replay()
   return wezterm.action_callback(function(window, pane, _, _)
-    local extracted_commands = command_choices(pane, default_extractors)
+    local extracted_commands = command_choices(pane, all_extractors)
     if #extracted_commands == 0 then
       wezterm.log_info('no commands found')
     elseif #extracted_commands == 1 then
@@ -190,15 +194,41 @@ function M.replay()
   end)
 end
 
-function M.apply_to_config(config, _)
+function M.apply_to_config(config, opts)
+  for idx, c in ipairs(opts.extractors) do
+    assert(
+      c.extractor,
+      'replay.wez: you must at least define a `func` extractor for custom config '
+        .. (c.label or ('index ' .. idx))
+    )
+    if not c.prefix then
+      wezterm.log_info(
+        'replay.wez: custom config '
+          .. (c.label or ('index ' .. idx))
+          .. ' did not define `prefix`'
+      )
+    end
+    if not c.postfix then
+      wezterm.log_info(
+        'replay.wez: custom config '
+          .. (c.label or ('index ' .. idx))
+          .. ' did not define `postfix`'
+      )
+    end
+    table.insert(all_extractors, c)
+  end
+  for _, c in ipairs(default_extractors) do
+    wezterm.log_info('adding default extractor ' .. c.label)
+    table.insert(all_extractors, c)
+  end
   add_keys(config, {
     {
-      key = 'l',
+      key = (opts.replay_key or 'l'),
       mods = 'LEADER',
       action = M.replay(),
     },
     {
-      key = 'u',
+      key = (opts.recall_key or 'u'),
       mods = 'LEADER',
       action = M.recall(),
     },
