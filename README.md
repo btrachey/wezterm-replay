@@ -21,12 +21,16 @@ To https://github.com/org/repo.git
  * [new branch]          branch-name -> branch-name
 branch 'branch-name' set up to track 'origin/branch-name'.
 
-$
-<trigger plugin here>
+$ <trigger plugin here>
 $ open https://github.com/org/repo/pull/new/branch-name
 ```
 
 By default, the plugin will be bound to <LEADER-l> for "last".
+
+## Requirement
+This plugin relies on shell integration escape sequences to capture the previous
+command's output. If you do not already have this set up, you can reference the
+[Wezterm documentation](https://wezterm.org/shell-integration.html) to do so.
 
 ## Setup
 Functions like a standard wezterm plugin; add to your `wezterm.lua`:
@@ -49,27 +53,35 @@ wezterm_replay.apply_to_config(config, opts)
 ```
 ### Custom Extractors
 The following extractors are built-in:
-* text in backticks `\`\``
+* Text in backticks
 * URLs via Lua patterns
 
 If you'd like to add your own, they take the format of
 ```
 {
-  label = "my_custom_extractor",
-  prefix = "prefix_string",
-  postfix = "postfix_string",
+  label = 'my_custom_extractor',
+  prefix = 'prefix_string',
+  postfix = 'postfix_string',
   func = function(s)
     logic here to extract useful things from `s`
     must return an array of strings
   end
+  pattern = '`(.*)`'
 }
 ```
 `label: string` purely for descriptions; will be used some places in the plugin logs
-`prefix: string|nil` a string to prepend to the parsed result, e.g. `open` for prepending
-parsed URLs
+
+`prefix: string|nil` a string to prepend to the parsed result, e.g. `open` for
+prepending parsed URLs
+
 `postfix: string|nil` a string to append to the parsed result
-`extractor: fun(s: string): string[]` the logic which extracts useful things from the previous output; must
-return `string[]`
+
+`extractor: fun(s: string): string[]` cannot be used with `pattern`; the logic
+which extracts useful things from the previous output; must return `string[]`
+
+`pattern: string` cannot be used with `extractor`; a Lua pattern that will be
+applied to the previous command's output with `string.gmatch()` and all matches
+returned as results.
 
 Add them to your config opts table under `extractors =` e.g.
 ```
@@ -83,7 +95,7 @@ local opts = {
       prefix = nil,
       postfix = nil,
       extractor = function(s)
-        local matches
+        local matches = {}
         for match in string:gmatch(s, '%d') do
           table.insert(matches, match)
         end
@@ -94,6 +106,9 @@ local opts = {
 }
 wezterm_replay.apply_to_config(config, opts)
 ```
+If you do not need the full power of a function and just want to define a Lua
+pattern to extract matches, use the `pattern` field instead of `extractor`.
+
 ## Recall
 If the extractors match multiple text segments, you will be dropped into a
 standard wezterm picker to choose the one you'd like to be inserted into your
@@ -118,7 +133,18 @@ triggered, you can use the functions directly from the plugin:
 wezterm_replay.replay()
 wezterm_replay.recall()
 ```
+You should also then pass `skip_keybinds = true` in your custom config options in
+order to prevent the plugin from auto-setting the defaults.
+```
+local config = wezterm.config_builder()
+...
+local wezterm_replay = wezterm.plugin.require("https://github.com/btrachey/wezterm-replay")
+local opts = {
+  skip_keybinds = true
+}
+wezterm_replay.apply_to_config(config, opts)
+```
 
 ## WIP
 The list of built-in extractors is far from complete, if you'd like to add some,
-I'll be more than happy to receive PRs! Thanks in advance.
+I'll be more than happy to review/merge PRs!
