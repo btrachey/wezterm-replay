@@ -98,7 +98,7 @@ end
 local M = {
   apply_config = apply_config,
   update_with_defaults = update_with_defaults,
-  validate_and_update_config = validate_custom_extractors,
+  validate_custom_extractors = validate_custom_extractors,
 }
 
 return M
