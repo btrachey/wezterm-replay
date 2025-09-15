@@ -31,18 +31,18 @@ local function apply_config(config, opts)
   end
 end
 
-local function update_with_defaults(conf)
-  if not conf then
+local function update_with_defaults(opts)
+  if not opts then
     return defaults
   else
     -- special handing of extractors because we need to concat first then merge
-    if conf.extractors then
+    if opts.extractors then
       for _, ex in ipairs(extractors.default_extractors) do
         util.log_info('adding default extractor ' .. ex.label)
-        table.insert(conf.extractors, ex)
+        table.insert(opts.extractors, ex)
       end
     end
-    util.table_merge(defaults, conf)
+    util.table_merge(defaults, opts)
   end
 end
 
@@ -56,9 +56,9 @@ local function create_pattern_extractor(pattern)
   end
 end
 
-local function validate_custom_extractors(conf)
-  if conf.extractors then
-    for idx, ex in ipairs(conf.extractors) do
+local function validate_custom_extractors(opts)
+  if opts and opts.extractors then
+    for idx, ex in ipairs(opts.extractors) do
       if ex.extractor and ex.pattern then
         error(
           util.log_msg(
