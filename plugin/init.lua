@@ -14,9 +14,9 @@ package.path = package.path
     'file:///Users/brian.tracey/Repos/personal/wezterm-replay'
   )
 
-local util = require('util')
-local configuration = require('configuration')
-local actions = require('actions')
+local util = require('replay.util')
+local configuration = require('replay.configuration')
+local actions = require('replay.actions')
 
 local function apply_to_config(config, opts)
   util.log_info('starting config')

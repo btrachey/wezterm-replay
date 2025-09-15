@@ -1,8 +1,8 @@
 local wezterm = require('wezterm')
 local io = require('io')
 
-local util = require('util')
-local extractors = require('extractors')
+local util = require('replay.util')
+local extractors = require('replay.extractors')
 
 local function handle_selection(window, pane, extracted_commands)
   if #extracted_commands == 0 then

@@ -1,6 +1,6 @@
-local util = require('util')
-local extractors = require('extractors')
-local actions = require('actions')
+local util = require('replay.util')
+local extractors = require('replay.extractors')
+local actions = require('replay.actions')
 
 local defaults = {
   replay_key = 'r',
