@@ -43,6 +43,7 @@ local function update_with_defaults(opts)
       end
     end
     util.table_merge(defaults, opts)
+    return opts
   end
 end
 

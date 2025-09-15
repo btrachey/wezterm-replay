@@ -21,8 +21,8 @@ local actions = require('replay.actions')
 local function apply_to_config(config, opts)
   util.log_info('starting config')
   configuration.validate_custom_extractors(opts)
-  configuration.update_with_defaults(opts)
-  configuration.apply_config(config, opts)
+  local merged = configuration.update_with_defaults(opts)
+  configuration.apply_config(config, merged)
 end
 
 local M = {
