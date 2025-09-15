@@ -11,7 +11,7 @@ end
 package.path = package.path
   .. ';'
   .. find_plugin_package_path(
-    'file:///users/brian.tracey/Repos/personal/wezterm-replay'
+    'file:///Users/brian.tracey/Repos/personal/wezterm-replay'
   )
 
 local util = require('util')
