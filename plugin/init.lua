@@ -3,16 +3,12 @@ local wezterm = require('wezterm')
 local function find_plugin_package_path(project)
   local separator = package.config:sub(1, 1) == '\\' and '\\' or '/'
   for _, v in ipairs(wezterm.plugin.list()) do
-    if v.url == project then
+    if string.find(v.url, project) then
       return v.plugin_dir .. separator .. 'plugin' .. separator .. '?.lua'
     end
   end
 end
-package.path = package.path
-  .. ';'
-  .. find_plugin_package_path(
-    'file:///Users/brian.tracey/Repos/personal/wezterm-replay'
-  )
+package.path = package.path .. ';' .. find_plugin_package_path('wezterm-replay')
 
 local util = require('replay.util')
 local configuration = require('replay.configuration')
