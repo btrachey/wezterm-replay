@@ -42,8 +42,8 @@ local function update_with_defaults(opts)
         table.insert(opts.extractors, ex)
       end
     end
-    util.table_merge(defaults, opts)
-    return opts
+    local merged = util.table_merge(defaults, opts)
+    return merged
   end
 end
 
