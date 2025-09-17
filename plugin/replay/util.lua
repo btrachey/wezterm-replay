@@ -71,6 +71,7 @@ local function table_merge(t1, t2)
 end
 
 local M = {
+  cache_path = cache_path,
   add_keys = add_keys,
   cache_results = cache_results,
   last_by = last_by,
