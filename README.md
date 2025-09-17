@@ -1,6 +1,6 @@
-# Wezterm Replay
-Plugin to parse the output of commands and extract useful information you may
-want to have pasted into your next command. A common example is the output of
+# WezTerm Replay
+Parse the output of commands and extract useful information you may want to have
+pasted into your next command prompt. A common example is the output of
 `git push`. If your remote forge sends back a URL for opening a pull request,
 this plugin will parse that URL, automatically prepend `open`, and paste the
 full result into your next command line, e.g. 
@@ -25,15 +25,15 @@ $ <trigger plugin here>
 $ open https://github.com/org/repo/pull/new/branch-name
 ```
 
-By default, the plugin will be bound to <LEADER-l> for "last".
+By default, the plugin will be bound to <LEADER-r> for "replay".
 
 ## Requirement
 This plugin relies on shell integration escape sequences to capture the previous
 command's output. If you do not already have this set up, you can reference the
-[Wezterm documentation](https://wezterm.org/shell-integration.html) to do so.
+[WezTerm documentation](https://wezterm.org/shell-integration.html) to do so.
 
 ## Setup
-Functions like a standard wezterm plugin; add to your `wezterm.lua`:
+Functions like a standard WezTerm plugin; add to your `wezterm.lua`:
 ```
 local wezterm_replay = wezterm.plugin.require("https://github.com/btrachey/wezterm-replay")
 wezterm_replay.apply_to_config(config)
@@ -47,7 +47,7 @@ local config = wezterm.config_builder()
 ...
 local wezterm_replay = wezterm.plugin.require("https://github.com/btrachey/wezterm-replay")
 local opts = {
-  replay_key = "r"
+  replay_key = "l"
 }
 wezterm_replay.apply_to_config(config, opts)
 ```
@@ -111,9 +111,9 @@ pattern to extract matches, use the `pattern` field instead of `extractor`.
 
 ## Recall
 If the extractors match multiple text segments, you will be dropped into a
-standard wezterm picker to choose the one you'd like to be inserted into your
+standard WezTerm picker to choose the one you'd like to be inserted into your
 next prompt. The plugin will also cache that list, allowing you to paste other
-matches by using the recall command (default `LEADER-u`). The list will remain
+matches by using the recall command (default `LEADER-q`). The list will remain
 cached until the next trigger of the "replay" functionality. Similarly to the
 replay command, the key can be remapped:
 ```
@@ -121,7 +121,7 @@ local config = wezterm.config_builder()
 ...
 local wezterm_replay = wezterm.plugin.require("https://github.com/btrachey/wezterm-replay")
 local opts = {
-  recall_key = "q"
+  recall_key = "u"
 }
 wezterm_replay.apply_to_config(config, opts)
 ```
