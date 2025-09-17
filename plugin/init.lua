@@ -3,7 +3,7 @@ local wezterm = require('wezterm')
 local function find_plugin_package_path(project)
   local separator = package.config:sub(1, 1) == '\\' and '\\' or '/'
   for _, v in ipairs(wezterm.plugin.list()) do
-    if string.find(v.url, project) then
+    if string.find(v.url, project, 1, true) then
       return v.plugin_dir .. separator .. 'plugin' .. separator .. '?.lua'
     end
   end
