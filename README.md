@@ -25,7 +25,7 @@ $ <trigger plugin here>
 $ open https://github.com/org/repo/pull/new/branch-name
 ```
 
-By default, the plugin will be bound to <LEADER-r> for "replay".
+By default, the plugin will be bound to `<LEADER-r>`; "r" for "replay".
 
 ## Requirement
 This plugin relies on shell integration escape sequences to capture the previous
@@ -113,7 +113,7 @@ pattern to extract matches, use the `pattern` field instead of `extractor`.
 If the extractors match multiple text segments, you will be dropped into a
 standard WezTerm picker to choose the one you'd like to be inserted into your
 next prompt. The plugin will also cache that list, allowing you to paste other
-matches by using the recall command (default `LEADER-q`). The list will remain
+matches by using the recall command (default `<LEADER-q>`). The list will remain
 cached until the next trigger of the "replay" functionality. Similarly to the
 replay command, the key can be remapped:
 ```
